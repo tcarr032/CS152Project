@@ -2,9 +2,10 @@
 	int currLine = 1, currPos = 1;
 %}
 DIGIT [0-9]
-ID [a-z A-Z]
+LETTER [a-z A-Z]
+ID [a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?
 %%
-
+ /* reserved words */
 "function"	{printf("FUNCTION\n"); currPos += yyleng;}
 "beginparams"	{printf("BEGIN_PARAMS\n"); currPos += yyleng;}
 "endparams"	{printf("END_PARAMS\n"); currPos += yyleng;}
@@ -34,13 +35,14 @@ ID [a-z A-Z]
 "false"		{printf("FALSE\n"); currPos += yyleng;}
 "return"	{printf("RETURN\n"); currPos += yyleng;}
 
+ /* comparison */
 "-"		{printf("SUB\n"); currPos += yyleng;}
 "+"		{printf("ADD\n"); currPos += yyleng;}
 "*"		{printf("MULT\n"); currPos += yyleng;}
 "/"		{printf("DIV\n"); currPos += yyleng;}
 "%"		{printf("MOD\n"); currPos += yyleng;}
 
-
+ /* comparison */
 "=="		{printf("EQ\n"); currPos += yyleng;}
 "<>"		{printf("NEQ\n"); currPos += yyleng;}
 "<"		{printf("LT\n"); currPos += yyleng;}
@@ -48,14 +50,7 @@ ID [a-z A-Z]
 "<="		{printf("LTE\n"); currPos += yyleng;}
 ">="		{printf("GTE\n"); currPos += yyleng;}
 
-
-{DIGIT}+	{printf("NUMBER %s\n", yytext); currPos += yyleng;}
-{ID}+		{printf("IDEN %s\n", yytext); currPos += yyleng;}
-
-[\t]+		{currPos += yyleng;}
-
-"\n"		{currLine++; currPos += yyleng;}
-
+ /* other special */
 ";"		{printf("SEMICOLON\n"); currPos += yyleng;}
 ":"		{printf("COLON\n"); currPos += yyleng;}
 ","		{printf("COMMA\n"); currPos += yyleng;}
@@ -64,6 +59,24 @@ ID [a-z A-Z]
 "["		{printf("L_SQUARE_BRACKET\n"); currPos += yyleng;}
 "]"		{printf("R_SQUARE_BRACKET\n"); currPos += yyleng;}
 ":="		{printf("ASSIGN\n"); currPos += yyleng;}
+
+ /*NUMBER XXXX AND ID XXXX*/
+{DIGIT}+        {printf("NUMBER %s\n", yytext); currPos += yyleng;}
+{ID}           {printf("IDENT %s\n", yytext); currPos += yyleng;}
+
+ /* ignore comments and tabs */
+" "				{currPos += yyleng;}
+[\t]+           {currPos += yyleng;}
+\#\#(.)*        {currPos += yyleng;}
+"\n"            {currLine++; currPos += yyleng;}
+
+ /*need error handleing */
+
+({DIGIT}|_)+{ID}  {printf("Error at line %d, column %d: identifier \"%s\" must begin with a letter\n", currLine, currPos, yytext); exit(0);} 
+{ID}_	{printf("Error at line%d, column %d: identifier \"%s\" cannot end in an underscore\n", currLine, currPos, yytext); exit(0);}
+.	{printf("Error at line %d, column %d: unrecognized symbol \"%s\"\n", currLine, currPos, yytext); exit(0);};
+
+
 %%
 
 int main(int argc, char ** argv)
