@@ -5,42 +5,42 @@ endparams
 
 beginlocals
 
-  n: integer;
+  n : integer;
   i, j, k: integer;
-  t: array [20] or integer;
+  t : array [20] of integer;
 
 endlocals
 
-beginbody ## main program
+beginbody	## main program
 
   read i, j;
 
-  k: = 0;
-  n: = 20;
+  k := 0;
+  n := 20;
   
-  die 
-    start run
-       t [k]: = k;
-       k: = k + 1;
-       if k% 2 == 0 then
+  do 
+    beginloop
+       t[k] := k;
+       k := k + 1;
+       if k % 2 == 0 then
            continue;
        endif;
-       write t [k-1];
+       write t[k-1];
     endloop
-  while k <n;
+  while k < n;
 
-  if i <j and j <n and i> = 0 then
-     t [i]: = i * 2;
-     t [j]: = j * 2;
-     k: = t [i];
-     t [i]: = t [j];
-     t [j]: = k;
+  if i<j and j < n and i>=0 then
+     t[i] := i * 2;
+     t[j] := j * 2;
+     k := t[i];
+     t[i] := t[j];
+     t[j] := k;
   else
-     while i> = j or false 
-       start run
-        k: = (1 + i - j)% 3;
-        i: = i - 1;
-        if k> 1 then
+     while  i >= j or false 
+       beginloop
+        k := (1 + i - j ) % 3;
+        i := i - 1;
+        if k > 1 then
              continue;
         endif;
         write k;
@@ -49,12 +49,12 @@ beginbody ## main program
 
   write i, j, k;
 
-  if i <n and i> = 0 then
-    write t [i];
+  if i < n and i >= 0 then
+    write t[i];
   endif;
 
-  if j <n and j> = 0 then
-    write t [j];
+  if j < n and j >=0 then
+    write t[j];
   endif;
 
 endbody

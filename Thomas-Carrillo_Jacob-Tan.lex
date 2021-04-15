@@ -2,7 +2,7 @@
 	int currLine = 1, currPos = 1;
 %}
 DIGIT [0-9]
-ID [a-z][A-Z]
+ID [a-z A-Z]
 %%
 
 "function"	{printf("FUNCTION\n"); currPos += yyleng;}
@@ -49,10 +49,12 @@ ID [a-z][A-Z]
 ">="		{printf("GTE\n"); currPos += yyleng;}
 
 
-{DIGIT}+	{printf("%s\n", yytext); currPos += yyleng;}
+{DIGIT}+	{printf("NUMBER %s\n", yytext); currPos += yyleng;}
+{ID}+		{printf("IDEN %s\n", yytext); currPos += yyleng;}
+
 [\t]+		{currPos += yyleng;}
 
-
+"\n"		{currLine++; currPos += yyleng;}
 
 ";"		{printf("SEMICOLON\n"); currPos += yyleng;}
 ":"		{printf("COLON\n"); currPos += yyleng;}
