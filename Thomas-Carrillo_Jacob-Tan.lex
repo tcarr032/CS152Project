@@ -49,6 +49,8 @@ ID [a-z][A-Z]
 ">="		{printf("GTE\n"); currPos += yyleng;}
 
 
+{DIGIT}+	{printf("%s\n", yytext); currPos += yyleng;}
+[\t]+		{currPos += yyleng;}
 
 
 
