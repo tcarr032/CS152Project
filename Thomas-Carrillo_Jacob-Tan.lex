@@ -4,12 +4,11 @@
 DIGIT [0-9]
 ID [a-z][A-Z]
 %%
-## Here we are going to do the operators
+
 "function"	{printf("FUNCTION\n"); currPos += yyleng;}
 "beginparams"	{printf("BEGIN_PARAMS\n"); currPos += yyleng;}
 "endparams"	{printf("END_PARAMS\n"); currPos += yyleng;}
-"endlocals"	{printf("BEGIN_LOCALS\n"); currPos += yyleng;}
-"beginlocals"	{printf("END_BODY\n"); currPos += yyleng;}
+"beginlocals"	{printf("BEGIN_LOCALS\n"); currPos += yyleng;}
 "endlocals"	{printf("END_LOCALS\n"); currPos += yyleng;}
 "beginbody"	{printf("BEGIN_BODY\n"); currPos += yyleng;}
 "endbody"	{printf("END_BODY\n"); currPos += yyleng;}
@@ -34,13 +33,13 @@ ID [a-z][A-Z]
 "true"		{printf("TRUE\n"); currPos += yyleng;}
 "false"		{printf("FALSE\n"); currPos += yyleng;}
 "return"	{printf("RETURN\n"); currPos += yyleng;}
-## Arithmetic Ops
+
 "-"		{printf("SUB\n"); currPos += yyleng;}
 "+"		{printf("ADD\n"); currPos += yyleng;}
 "*"		{printf("MULT\n"); currPos += yyleng;}
 "/"		{printf("DIV\n"); currPos += yyleng;}
 "%"		{printf("MOD\n"); currPos += yyleng;}
-## Comparison Ops
+
 
 "=="		{printf("EQ\n"); currPos += yyleng;}
 "<>"		{printf("NEQ\n"); currPos += yyleng;}
@@ -49,10 +48,10 @@ ID [a-z][A-Z]
 "<="		{printf("LTE\n"); currPos += yyleng;}
 ">="		{printf("GTE\n"); currPos += yyleng;}
 
-## ID and Numbers
 
 
-## Other Special Symbols
+
+
 ";"		{printf("SEMICOLON\n"); currPos += yyleng;}
 ":"		{printf("COLON\n"); currPos += yyleng;}
 ","		{printf("COMMA\n"); currPos += yyleng;}
