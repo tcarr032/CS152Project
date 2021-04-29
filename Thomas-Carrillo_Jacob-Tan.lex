@@ -62,8 +62,8 @@ ID [a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?
 ":="		{return ASSIGN; currPos += yyleng;}
 
  /*NUMBER XXXX AND ID XXXX*/
-{DIGIT}+        {yylval.dval = atof(yytext); currPos += yyleng; return NUMBER;}
-{ID}           {printf("IDENT %s\n", yytext); currPos += yyleng;}
+{DIGIT}+        {yylval.num_val = atof(yytext); currPos += yyleng; return NUMBER;}
+{ID}           {yylval.id_val = strdup(yytext); currPos += yyleng; return IDENT}
 
  /* ignore comments and tabs */
 " "				{currPos += yyleng;}
