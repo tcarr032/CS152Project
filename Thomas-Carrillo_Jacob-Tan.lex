@@ -63,7 +63,7 @@ ID [a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?
 
  /*NUMBER XXXX AND ID XXXX*/
 {DIGIT}+        {yylval.num_val = atof(yytext); currPos += yyleng; return NUMBER;}
-{ID}           {yylval.id_val = strdup(yytext); currPos += yyleng; return IDENT}
+{ID}           {yylval.id_val = strdup(yytext); currPos += yyleng; return IDENT;}
 
  /* ignore comments and tabs */
 " "				{currPos += yyleng;}
@@ -71,7 +71,7 @@ ID [a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?
 \#\#(.)*        {currPos += yyleng;}
 "\n"            {currLine++; currPos += yyleng;}
 
- /*need error handleing */
+ /*need error handling */
 
 ({DIGIT}|_)+{ID}  {printf("Error at line %d, column %d: identifier \"%s\" must begin with a letter\n", currLine, currPos, yytext); exit(0);} 
 {ID}_	{printf("Error at line%d, column %d: identifier \"%s\" cannot end in an underscore\n", currLine, currPos, yytext); exit(0);}

@@ -10,7 +10,7 @@
 %union{
 	int num_val;
 	char* id_val;
-}%
+}
 
 
 %start PROGRAM
@@ -27,18 +27,14 @@
 %right ASSIGN
 
 %%
-<<<<<<< HEAD
-PROGRAM: functions {printf("PROGRAM start\n")}git
-=======
 PROGRAM: functions {printf("PROGRAM -> functions\n");}
->>>>>>> 1d0c446c11fc3b204d3aa5d42feec6f35f87a2b5
 	;
 functions: {printf("functions -> epsilon\n");}
     | function functions {printf("functions -> function functions\n");}
     ;
-function:   FUNCTION IDENT SEMICOLON BEGIN_PARAMS declaration END_PARAMS BEGIN_LOCALS declaration END_LOCALS BEGIN_BODY statement END_BODY {printf("function -> FUNCTION IDENT SEMICOLON BEGIN_PARAMS declaration END_PARAMS BEGIN_LOCALS declaration END_LOCALS BEGIN_BODY statement END_BODY\n");}
+function:   FUNCTION IDENT SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY {printf("function -> FUNCTION IDENT SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY\n");}
     ;
-declarations: /*epsilon*/ {printf("declarations -> epsilon\n");}
+declarations: {printf("declarations -> epsilon\n");}
     | declaration SEMICOLON declarations {printf("declarations -> declaration SEMICOLON declarations");}
     ;
 declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER {printf("declaration -> identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER\n");}
@@ -49,12 +45,12 @@ statements:
     | statement SEMICOLON statements {printf("statements -> statement SEMICOLON statements\n");}
     ;
 statement:
-    | vars ASSIGN expressions {printf("statement -> vars ASSIGN expressions \n");}
+    | var ASSIGN expressions {printf("statement -> var ASSIGN expressions \n");}
     | IF boolexpressions THEN statements ENDIF {printf("statement -> IF boolexpressions THEN statements ENDIF \n");}
     | IF boolexpressions THEN statements ELSE statements ENDIF {printf("statement -> IF boolexpressions THEN statements ELSE statements ENDIF\n");}
-    | WHILE boolexpressions beginloop statements ENDLOOP {printf("statement -> WHILE boolexpressions beginloop statements ENDLOOP\n");}
+    | WHILE boolexpressions BEGINLOOP statements ENDLOOP {printf("statement -> WHILE boolexpressions beginloop statements ENDLOOP\n");}
     | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions {printf("statement -> DO BEGINLOOP statements ENDLOOP WHILE boolexpressions\n");}
-    | READ vars {printf("statement -> READ vars\n");}
+    | READ var {printf("statement -> READ var\n");}
     | CONTINUE {printf("statement -> CONTINUE\n");}
     | RETURN expressions {printf("statement -> RETURN\n");}
     ;
@@ -91,13 +87,13 @@ multiplicative_expression: term {printf("multiplicative_expression -> term\n");}
     | term DIV multiplicative_expression {printf("multiplicative_expression -> term DIV multiplicative_expression\n");}
     | term MOD multiplicative_expression {printf("multiplicative_expression -> term MOD multiplicative_expression\n");}
     ;
-terms: var {printf("terms -> \n");}
-    | SUB var {printf("terms -> SUB var\n");}
-    | NUMBER {printf("terms -> NUMBER\n");}
-    | SUB NUMBER {printf("terms -> SUB NUMBER\n");}
-    | L_PAREN expression R_PAREN {printf("terms -> L_PAREN expression R_PAREN\n");}
-    | SUB L_PAREN expression R_PAREN {printf("terms -> SUB L_PAREN expression R_PAREN\n");}
-    | IDENT L_PAREN expressions R_PAREN {printf("terms -> IDENT L_PAREN expressions R_PAREN\n");}
+term: var {printf("term -> \n");}
+    | SUB var {printf("term -> SUB var\n");}
+    | NUMBER {printf("term -> NUMBER\n");}
+    | SUB NUMBER {printf("term -> SUB NUMBER\n");}
+    | L_PAREN expression R_PAREN {printf("term -> L_PAREN expression R_PAREN\n");}
+    | SUB L_PAREN expression R_PAREN {printf("term -> SUB L_PAREN expression R_PAREN\n");}
+    | IDENT L_PAREN expressions R_PAREN {printf("term -> IDENT L_PAREN expressions R_PAREN\n");}
     ;
 var: identifier {printf("var -> identifier\n");}
     | identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET {printf("var -> identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET\n");}
@@ -108,7 +104,7 @@ identifier: {printf("identifier -> epsilon\n");}
     |IDENT COMMA {printf("identifier -> IDENT COMMA\n");}
     ;
  
-
+%%
 
 int main(int argc, char **argv){
 	if(argc > 1)
