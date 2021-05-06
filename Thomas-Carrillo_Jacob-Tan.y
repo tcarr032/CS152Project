@@ -27,7 +27,7 @@
 %right ASSIGN
 
 %%
-PROGRAM: functions {printf("PROGRAM start\n")}
+PROGRAM: functions {printf("PROGRAM start\n")}git
 	;
 functions: {printf("nothing");}
     | function functions

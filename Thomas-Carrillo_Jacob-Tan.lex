@@ -1,124 +1,81 @@
 %{
- #include <stdio.h>
- #include <stdlib.h>
- void yyerror(const char *msg);
- extern int currLine;
- extern int currPos;
- FILE* yyin;
+	#include "y.tab.h"
+	int currLine = 1, currPos = 1;
 %}
+DIGIT [0-9]
+LETTER [a-z A-Z]
+ID [a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?
+%%
+ /* reserved words */
+"function"	{return FUNCTION; currPos += yyleng;}
+"beginparams"	{return BEGIN_PARAMS; currPos += yyleng;}
+"endparams"	{return END_PARAMS; currPos += yyleng;}
+"beginlocals"	{return BEGIN_LOCALS; currPos += yyleng;}
+"endlocals"	{return END_LOCALS; currPos += yyleng;}
+"beginbody"	{return BEGIN_BODY; currPos += yyleng;}
+"endbody"	{return END_BODY; currPos += yyleng;}
+"integer"	{return INTEGER; currPos += yyleng;}
+"array"		{return ARRAY; currPos += yyleng;}
+"enum"		{return ENUM; currPos += yyleng;}
+"of"		{return OF; currPos += yyleng;}
+"if"		{return IF; currPos += yyleng;}
+"then"		{return THEN; currPos += yyleng;}
+"endif"		{return ENDIF; currPos += yyleng;}
+"else"		{return ELSE; currPos += yyleng;}
+"while"		{return WHILE; currPos += yyleng;}
+"do"		{return DO; currPos += yyleng;}
+"beginloop"	{return BEGINLOOP; currPos += yyleng;}
+"endloop"	{return ENDLOOP; currPos += yyleng;}
+"continue"	{return CONTINUE; currPos += yyleng;}
+"read"		{return READ; currPos += yyleng;}
+"write"		{return WRITE; currPos += yyleng;}
+"and"		{return AND; currPos += yyleng;}
+"or"		{return OR; currPos += yyleng;}
+"not"		{return NOT; currPos += yyleng;}
+"true"		{return TRUE; currPos += yyleng;}
+"false"		{return FALSE; currPos += yyleng;}
+"return"	{return RETURN; currPos += yyleng;}
 
-%union{
-	int num_val;
-	char* id_val;
-}%
+ /* comparison */
+"-"		{return SUB; currPos += yyleng;}
+"+"		{return ADD; currPos += yyleng;}
+"*"		{return MULT; currPos += yyleng;}
+"/"		{return DIV; currPos += yyleng;}
+"%"		{return MOD; currPos += yyleng;}
 
+ /* comparison */
+"=="		{return EQ; currPos += yyleng;}
+"<>"		{return NEQ; currPos += yyleng;}
+"<"		{return LT; currPos += yyleng;}
+">"		{return GT; currPos += yyleng;}
+"<="		{return LTE; currPos += yyleng;}
+">="		{return GTE; currPos += yyleng;}
 
-%start PROGRAM
-%token FUNCTION BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY INTEGER ARRAY ENUM OF IF THEN ENDIF ELSE WHILE DO BEGINLOOP ENDLOOP CONTINUE READ WRITE TRUE FALSE RETURN 
-%token MULT ADD DIV PLUS SUB MOD
-%token SEMICOLON COLON COMMA L_PAREN R_PAREN L_SQUARE_BRACKET R_SQUARE_BRACKET  
-%token <num_val> NUMBER
-%token <id_val> IDENT
-%left PLUS SUB
-%left AND OR
-%left EQ NEQ LT GT LTE GTE
-%right NOT 
-%left MULT DIV MOD
-%right ASSIGN
+ /* other special */
+";"		{return SEMICOLON; currPos += yyleng;}
+":"		{return COLON; currPos += yyleng;}
+","		{return COMMA; currPos += yyleng;}
+"("		{return L_PAREN; currPos += yyleng;}
+")"		{return R_PAREN; currPos += yyleng;}
+"["		{return L_SQUARE_BRACKET; currPos += yyleng;}
+"]"		{return R_SQUARE_BRACKET; currPos += yyleng;}
+":="		{return ASSIGN; currPos += yyleng;}
+
+ /*NUMBER XXXX AND ID XXXX*/
+{DIGIT}+        {yylval.num_val = atof(yytext); currPos += yyleng; return NUMBER;}
+{ID}           {yylval.id_val = strdup(yytext); currPos += yyleng; return IDENT}
+
+ /* ignore comments and tabs */
+" "				{currPos += yyleng;}
+[\t]+           {currPos += yyleng;}
+\#\#(.)*        {currPos += yyleng;}
+"\n"            {currLine++; currPos += yyleng;}
+
+ /*need error handleing */
+
+({DIGIT}|_)+{ID}  {printf("Error at line %d, column %d: identifier \"%s\" must begin with a letter\n", currLine, currPos, yytext); exit(0);} 
+{ID}_	{printf("Error at line%d, column %d: identifier \"%s\" cannot end in an underscore\n", currLine, currPos, yytext); exit(0);}
+.	{printf("Error at line %d, column %d: unrecognized symbol \"%s\"\n", currLine, currPos, yytext); exit(0);};
+
 
 %%
-PROGRAM: functions {printf("PROGRAM -> functions\n");}
-	;
-functions: {printf("functions -> epsilon\n");}
-    | function functions {printf("functions -> function functions\n");}
-    ;
-function:   FUNCTION IDENT SEMICOLON BEGIN_PARAMS declaration END_PARAMS BEGIN_LOCALS declaration END_LOCALS BEGIN_BODY statement END_BODY {printf("function -> FUNCTION IDENT SEMICOLON BEGIN_PARAMS declaration END_PARAMS BEGIN_LOCALS declaration END_LOCALS BEGIN_BODY statement END_BODY\n");}
-    ;
-declarations: /*epsilon*/ {printf("declarations -> epsilon\n");}
-    | declaration SEMICOLON declarations {printf("declarations -> declaration SEMICOLON declarations");}
-    ;
-declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER {printf("declaration -> identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER\n");}
-    | identifiers COLON INTEGER var {printf("declaration -> identifiers COLON INTEGER var\n");}
-    | identifiers COLON ENUM L_PAREN identifiers R_PAREN {printf("declaration -> identifiers COLON ENUM L_PAREN identifiers R_PAREN\n");}
-    ;
-statements: 
-    | statement SEMICOLON statements {printf("statements -> statement SEMICOLON statements\n");}
-    ;
-statement:
-    | vars ASSIGN expressions {printf("statement -> vars ASSIGN expressions \n");}
-    | IF boolexpressions THEN statements ENDIF {printf("statement -> IF boolexpressions THEN statements ENDIF \n");}
-    | IF boolexpressions THEN statements ELSE statements ENDIF {printf("statement -> IF boolexpressions THEN statements ELSE statements ENDIF\n");}
-    | WHILE boolexpressions beginloop statements ENDLOOP {printf("statement -> WHILE boolexpressions beginloop statements ENDLOOP\n");}
-    | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions {printf("statement -> DO BEGINLOOP statements ENDLOOP WHILE boolexpressions\n");}
-    | READ vars {printf("statement -> READ vars\n");}
-    | CONTINUE {printf("statement -> CONTINUE\n");}
-    | RETURN expressions {printf("statement -> RETURN\n");}
-    ;
-boolexpressions: relationandexpressions {printf("boolexpressions -> relationandexpressions\n");}
-    | relationandexpressions OR relationandexpressions {printf("boolexpressions -> relationandexpressions OR relationandexpressions\n");}
-    ;
-relationandexpressions: relationexpressions {printf("relationandexpressions -> relationexpressions\n");}
-    | relationexpressions AND relationexpressions {printf("relationandexpressions -> relationexpressions AND relationexpressions\n");}
-    ;
-relationexpressions: NOT relationexpress {printf("relationexpressions -> NOT relationexpress\n");}
-    |   relationexpress {printf("relationexpressions -> relationexpress\n");}
-    ;
-relationexpress: expressions comps expressions {printf("relationexpress -> expressions comps expressions\n");}
-    | TRUE {printf("relationexpress -> TRUE\n");}
-    | FALSE {printf("relationexpress -> FALSE\n");}
-    | L_PAREN boolexpressions R_PAREN {printf("relationexpress -> L_PAREN boolexpressions R_PAREN\n");}
-    ;
-comps: EQ EQ {printf("comps -> EQ EQ\n");}
-    | LT GT {printf("comps -> LT GT\n");}
-    | LT {printf("comps -> LT\n");}
-    | GT {printf("comps -> GT\n");}
-    | LT EQ {printf("comps -> LT EQ\n");}
-    | GT EQ {printf("comps -> GT EQ\n");}
-    ;
-expressions: expression {printf("expressions -> expression\n");}
-    |   expression COMMA expressions {printf("expressions -> expression COMMA expressions\n");}
-    ;
-expression: multiplicative_expression {printf("expression -> multiplicative_expression\n");}
-    |   multiplicative_expression ADD multiplicative_expression {printf("expression -> multiplicative_expression ADD multiplicative_expression\n");} 
-    |   multiplicative_expression SUB multiplicative_expression {printf("expression -> multiplicative_expression ADD multiplicative_expression\n");}
-    ;
-multiplicative_expression: term {printf("multiplicative_expression -> term\n");}
-    | term MULT multiplicative_expression {printf("multiplicative_expression -> term MULT multiplicative_expression\n");}
-    | term DIV multiplicative_expression {printf("multiplicative_expression -> term DIV multiplicative_expression\n");}
-    | term MOD multiplicative_expression {printf("multiplicative_expression -> term MOD multiplicative_expression\n");}
-    ;
-terms: var {printf("terms -> \n");}
-    | SUB var {printf("terms -> SUB var\n");}
-    | NUMBER {printf("terms -> NUMBER\n");}
-    | SUB NUMBER {printf("terms -> SUB NUMBER\n");}
-    | L_PAREN expression R_PAREN {printf("terms -> L_PAREN expression R_PAREN\n");}
-    | SUB L_PAREN expression R_PAREN {printf("terms -> SUB L_PAREN expression R_PAREN\n");}
-    | IDENT L_PAREN expressions R_PAREN {printf("terms -> IDENT L_PAREN expressions R_PAREN\n");}
-    ;
-var: identifier {printf("var -> identifier\n");}
-    | identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET {printf("var -> identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET\n");}
-identifiers: identifier {printf("identifiers -> identifier\n");}
-    | identifier COMMA identifiers {printf("identifiers -> identifier COMMA identifiers\n");}
-    ;
-identifier: {printf("identifier -> epsilon\n");}
-    |IDENT COMMA {printf("identifier -> IDENT COMMA\n");}
-    ;
- 
-
-
-int main(int argc, char **argv){
-	if(argc > 1)
-	{
-		yyin = fopen(argv[1], "r");
-		if( yyin == NULL){
-			printf("ERROR: File %s could not be read please enter a proper file\n", argv[0]);
-			exit(0);
-		}
-	}
-	yyparse();
-	return 0;
-}
-
-void yyerror(const char *msg) {
-	printf("Line %d, position %d: %s\n", currLine, currPos, msg);
-}
