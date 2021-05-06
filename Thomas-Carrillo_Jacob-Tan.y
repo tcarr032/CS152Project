@@ -15,7 +15,7 @@
 
 %start PROGRAM
 %token FUNCTION BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY INTEGER ARRAY ENUM OF IF THEN ENDIF ELSE WHILE DO BEGINLOOP ENDLOOP CONTINUE READ WRITE TRUE FALSE RETURN 
-%token MULT DIV PLUS SUB MOD
+%token MULT ADD DIV PLUS SUB MOD
 %token SEMICOLON COLON COMMA L_PAREN R_PAREN L_SQUARE_BRACKET R_SQUARE_BRACKET  
 %token <num_val> NUMBER
 %token <id_val> IDENT
@@ -27,8 +27,7 @@
 %right ASSIGN
 
 %%
-PROGRAM:/*epsilon*/
-	| PROGRAM functions
+PROGRAM: functions {printf("PROGRAM start\n")}
 	;
 functions: {printf("nothing");}
     | function functions
@@ -51,9 +50,54 @@ statement:
     | IF boolexpressions THEN statements ELSE statements ENDIF
     | WHILE boolexpressions beginloop statements ENDLOOP
     | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions
-
+    | READ  vars
+    | CONTINUE
+    | RETURN expressions
     ;
-identifiers: 
+boolexpressions: relationandexpressions
+    | relationandexpressions OR relationandexpressions
+    ;
+relationandexpressions: relationexpressions
+    | relationexpressions AND relationexpressions
+    ;
+relationexpressions: NOT relationexpress
+    |   relationexpress
+    ;
+relationexpress: expressions comps expressions
+    | TRUE
+    | FALSE
+    | L_PAREN boolexpressions R_PAREN
+    ;
+comps: EQ EQ
+    | LT GT
+    | LT
+    | GT
+    | LT EQ
+    | GT EQ
+    ;
+expressions: expression
+    |   expression COMMA expressions
+    ;
+expression: multiplicative_expression
+    |   multiplicative_expression ADD multiplicative_expression
+    |   multiplicative_expression SUB multiplicative_expression
+    ;
+multiplicative_expression: term 
+    | term MULT multiplicative_expression
+    | term DIV multiplicative_expression
+    | term MOD multiplicative_expression
+    ;
+terms: var
+    | SUB var
+    | NUMBER
+    | SUB NUMBER
+    | L_PAREN expression R_PAREN
+    | SUB L_PAREN expression R_PAREN
+    | IDENT L_PAREN expressions R_PAREN
+    ;
+var: identifier
+    | identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET
+identifiers: identifier
     | identifier COMMA identifiers
     ;
 identifier: 
