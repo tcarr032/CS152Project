@@ -1,11 +1,11 @@
-n main;
+function main;
 beginparams
 endparams
 
 beginlocals
 
-  2n : integer;
-  i_, j, k: integer;
+  n : integer;
+  i, j, k: integer;
   t : array [20] of integer;
 
 endlocals

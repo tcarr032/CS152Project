@@ -24,6 +24,7 @@ ID [a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?
 "else"		{return ELSE; currPos += yyleng;}
 "while"		{return WHILE; currPos += yyleng;}
 "do"		{return DO; currPos += yyleng;}
+"for"		{return FOR; currPos += yyleng;}
 "beginloop"	{return BEGINLOOP; currPos += yyleng;}
 "endloop"	{return ENDLOOP; currPos += yyleng;}
 "continue"	{return CONTINUE; currPos += yyleng;}
