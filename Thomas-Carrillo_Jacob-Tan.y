@@ -35,11 +35,12 @@
 %right ASSIGN
 
 %%
-PROGRAM: functions {printf("PROGRAM -> functions\n");}
+PROGRAM: 
+    {
+    
+    }
+    |function PROGRAM {printf("PROGRAM -> functions\n");}
 	;
-functions: {printf("functions -> epsilon\n");}
-    | function functions {printf("functions -> function functions\n");}
-    ;
 function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY {printf("function -> FUNCTION IDENT SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY\n");}
     ;
 declarations: {printf("declarations -> epsilon\n");}
