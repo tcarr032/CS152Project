@@ -10,6 +10,14 @@
 %union{
 	int num_val;
 	char* id_val;
+    struct S {
+        char* code;
+    } statement;
+    struct E {
+        char* place;
+        char* code;
+        bool arr;
+    } expression;
 }
 
 %error-verbose
