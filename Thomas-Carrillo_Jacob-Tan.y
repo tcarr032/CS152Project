@@ -154,10 +154,39 @@ vars: var {printf("vars -> var");}
 var: identifier {printf("var -> identifier\n");}
     | identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET {printf("var -> identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET\n");}
     ;
-identifiers: identifier {printf("identifiers -> identifier\n");}
-    | identifier COMMA identifiers {printf("identifiers -> identifier COMMA identifiers\n");}
+
+FuncIdent: IDENT
+    {
+        if (funcs.find($1) != funcs.end()) {
+            printf("function name %s is already declared.\n), $1);
+        }
+        else
+        {
+            funcs.insert($1);
+        }
+        $$.place = strdup($1);
+        $$.code = strdup("");
+    }
+identifiers: identifier 
+    {
+        $$.place = strdup($1.place);
+        $$.code = strdup("");
+    }
+    | identifier COMMA identifiers 
+    {
+        std::string temp;
+        temp.append($1.place);
+        temp.append("|");
+        temp.append($3.place);
+        $$.place = strdup(temp.c_str());
+        $$.code = strdup("");
+    }
     ;
-identifier: IDENT {printf("identifier -> IDENT %s\n", $1);}
+identifier: IDENT 
+    {
+        $$.place = strdup($1);
+        $$.code = strdup("");
+    }
     ;
  
 %%
