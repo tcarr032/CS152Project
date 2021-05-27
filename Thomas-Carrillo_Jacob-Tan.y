@@ -45,13 +45,47 @@
 %right ASSIGN
 
 %%
-PROGRAM: functions {printf("PROGRAM -> functions\n");}
-	;
-functions: {printf("functions -> epsilon\n");}
-    | function functions {printf("functions -> function functions\n");}
+Program: %empty
+    {
+        if (!mainFunc) {
+            printf ("No main function declared!\m");
+        }
+    }
+    | Function Program
+    {}
     ;
-function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY {printf("function -> FUNCTION IDENT SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY\n");}
+function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY 
+    std::string temp = "func ";
+    temp.append($2.place);
+    temp.append("\n");
+    std::string s = $2.place;
+    if (s == "main") {
+        mainFunc = true;
+    }
+    temp.append($5.code);
+    std::string decs = $5.code;
+    int decNum = 0;
+    while(decs.find(".") != std::string::npos) {
+        int position = decs.find(".");
+        decs.replace(position,1,"=");
+        std::string part = ", $" + std::to_string(decNum) + "\n";
+        decNum++;
+        decs.replace(decs.find("\n", position), 1, part)
+    }
+    temp.append(decs);
+
+    temp.append($8.code);
+    std::string statements = $11.code;
+    if (statements.find("continue") != std::string::npos) {
+        printf("ERROR: Loop continued outside function. %s\n", $2.place);
+    }
+    temp.append(statements);
+    temp.append("endfunc\n\n);
+    printf(temp.c_str());
     ;
+
+
+
 declarations: {printf("declarations -> epsilon\n");}
     | declaration SEMICOLON declarations {printf("declarations -> declaration SEMICOLON declarations\n");}
     ;
