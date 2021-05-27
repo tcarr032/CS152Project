@@ -86,10 +86,28 @@ function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS B
 
 
 
-declarations: {printf("declarations -> epsilon\n");}
-    | declaration SEMICOLON declarations {printf("declarations -> declaration SEMICOLON declarations\n");}
+declarations: %empty
+    {
+        $$.place = strdup("");
+        $$.code = strdup("");
+    }
+    | declaration SEMICOLON declarations 
+    {
+        std::string temp;
+        temp.append($1.code);
+        temp.append($3.code);
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup("");
+    }
     ;
-declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER {printf("declaration -> identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER\n");}
+declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER 
+    {
+        size_t left = 0;
+        size_t right = 0;
+        std::string parser($1.place);
+        std::string temp;
+        bool ex = false;
+    }
     | identifiers COLON INTEGER {printf("declaration -> identifiers COLON INTEGER var\n");}
     | identifiers COLON ENUM L_PAREN identifiers R_PAREN {printf("declaration -> identifiers COLON ENUM L_PAREN identifiers R_PAREN\n");}
     ;
