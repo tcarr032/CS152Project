@@ -104,73 +104,308 @@ declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF
     {
         size_t left = 0;
         size_t right = 0;
-        std::string parser($1.place);
+        std::string parser($1.place); /* identifiers */
         std::string temp;
         bool ex = false;
+        while(!ex) 
+        {
+            right = parse.find("|", left);
+            temp.append(".[] ");
+            if (right == std::string::npos) 
+            {
+                std::string ident = parse.substr(left, right);
+                if (reserved.find(ident)) != reserved.end())   /* matches a reserved word in reserved list */
+                {
+                    printf("Identifier %s is a reserved word.\n", ident.c_str());
+                }
+                if (funcs.find(ident) != funcs.end() || varTemp.find(ident) != varTemp.end())   
+                {
+                    printf("Identifier %s is already declared.\n");
+                }
+                else 
+                {
+                    if ($5 <= 0) { /* number */
+                        printf("Declaring array ident %s size <= 0,\n", ident.c_str());
+                    }
+                    varTemp[ident] = ident;
+                    arrSize[ident] = $5; /* number */
+                }
+                temp.append(ident);
+                ex = true;
+
+            }
+            else
+            {
+                std::string ident = parse.substr(left, right-left);
+                if (reserved.find(ident)) != reserved.end())   /* matches a reserved word in reserved list */
+                {
+                    printf("Identifier %s is a reserved word.\n", ident.c_str());
+                }
+                if (funcs.find(ident) != funcs.end() || varTemp.find(ident) != varTemp.end())   
+                {
+                    printf("Identifier %s is already declared.\n");
+                }
+                else 
+                {
+                    if ($5 <= 0) { /* number */
+                        printf("Declaring array ident %s size <= 0,\n", ident.c_str());
+                    }
+                    varTemp[ident] = ident;
+                    arrSize[ident] = $5; /* number */
+                }
+                temp.append(ident);
+                left = right + 1;
+            }
+            temp.append(", ");
+            temp.append(std::to_string($5));
+            temp.append("\n");
+        }
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup("");
     }
-    | identifiers COLON INTEGER {printf("declaration -> identifiers COLON INTEGER var\n");}
-    | identifiers COLON ENUM L_PAREN identifiers R_PAREN {printf("declaration -> identifiers COLON ENUM L_PAREN identifiers R_PAREN\n");}
+    | identifiers COLON INTEGER 
+    | identifiers COLON ENUM L_PAREN identifiers R_PAREN 
     ;
 statements: 
-    | statement SEMICOLON statements {printf("statements -> statement SEMICOLON statements\n");}
+    | statement SEMICOLON statements
+    {
+        std::string temp;
+        temp.append($1.code);
+        temp.append($3.code);
+        $$.code = strdup(temp.c_str());
+    }
     ;
 statement:
-    | var ASSIGN expressions {printf("statement -> var ASSIGN expressions \n");}
-    | IF boolexpressions THEN statements ENDIF {printf("statement -> IF boolexpressions THEN statements ENDIF \n");}
-    | IF boolexpressions THEN statements ELSE statements ENDIF {printf("statement -> IF boolexpressions THEN statements ELSE statements ENDIF\n");}
-    | WHILE boolexpressions BEGINLOOP statements ENDLOOP {printf("statement -> WHILE boolexpressions beginloop statements ENDLOOP\n");}
-    | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions {printf("statement -> DO BEGINLOOP statements ENDLOOP WHILE boolexpressions\n");}
-    | READ vars {printf("statement -> READ vars\n");}
-    | WRITE vars {printf("statement -> WRITE vars\n");}
-    | CONTINUE {printf("statement -> CONTINUE\n");}
-    | RETURN expressions {printf("statement -> RETURN\n");}
+    | var ASSIGN expressions
+    {
+        std::string temp;
+        temp.append($1.code);
+        temp.append($3.code);
+        std::string middle = $3.place;
+        if($1.arr && $3.arr)
+        {
+            temp += "[]=";
+        } else if ($1.arr)  
+        {
+            temp += "[]=";
+        } else if ($3.arr)  
+        {
+            temp += "= ";
+        } else  
+        {
+            temp += "= ";
+        }
+
+        temp.append($1.place);
+        temp.append(", ");
+        temp.append(middle);
+        temp += "\n"
+        $$.code = strdup(temp.c_str());
+    }
+    | IF boolexpressions THEN statements ENDIF
+    {
+        std::string ifS = new_label();
+        std::string after = new_label();
+        std::string temp;
+        temp.append($2.code);
+        temp = temp + "?:= " + ifS + ", " + $2.place + "\n";
+        temp - temp + ":= " + after + "\n";
+        temp = temp + ": " + ifS + "\n";
+        temp.append($4.code);
+        temp = temp + ": " + after + "\n";
+        $$.code = strdup("temp.c_str());
+    }
+    | IF boolexpressions THEN statements ELSE statements ENDIF 
+    | WHILE boolexpressions BEGINLOOP statements ENDLOOP 
+    | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions 
+    | READ vars 
+    {
+        std::string temp;
+        temp.append($2.code);
+        size_t pos = temp.find("|", 0);
+        while (pos != std::string::npos)
+        {
+            temp.replace(pos, 1, ".<");
+            pos = temp.find("|", pos);
+        }
+        $$.code = strdup(temp.c_str());
+    }
+    | WRITE vars
+    {
+        std::string temp;
+        temp.append($2.code);
+        size_t pos = temp.find("|", 0);
+        while (pos != std::string::npos)
+        {
+            temp.replace(pos, 1, ".>");
+            pos = temp.find("|", pos);
+        }
+        $$.code = strdup(temp.c_str());
+    }
+    | CONTINUE 
+    | RETURN expressions 
     ;
-boolexpressions: relationandexpressions {printf("boolexpressions -> relationandexpressions\n");}
-    | relationandexpressions OR relationandexpressions {printf("boolexpressions -> relationandexpressions OR relationandexpressions\n");}
+boolexpressions: relationandexpressions
+    | relationandexpressions OR relationandexpressions 
     ;
-relationandexpressions: relationexpressions {printf("relationandexpressions -> relationexpressions\n");}
-    | relationexpressions AND relationandexpressions {printf("relationandexpressions -> relationexpressions AND relationexpressions\n");}
+relationandexpressions: relationexpressions 
+    | relationexpressions AND relationandexpressions
     ;
-relationexpressions: NOT relationexpress {printf("relationexpressions -> NOT relationexpress\n");}
-    |   relationexpress {printf("relationexpressions -> relationexpress\n");}
+relationexpressions: NOT relationexpress 
+    |   relationexpress 
     ;
-relationexpress: expressions comps expressions {printf("relationexpress -> expressions comps expressions\n");}
-    | TRUE {printf("relationexpress -> TRUE\n");}
-    | FALSE {printf("relationexpress -> FALSE\n");}
-    | L_PAREN boolexpressions R_PAREN {printf("relationexpress -> L_PAREN boolexpressions R_PAREN\n");}
+relationexpress: expressions comps expressions 
+    {
+        std::string dst = new_label();
+        std::string temp;
+        temp.append($1.code);
+        temp.append($3.code);
+        temp = temp + ". " + dst + "\n" + $2.place + dst + ", " + $3.place + "\n";
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup(dst.c_str());
+    }
+    | TRUE 
+    {
+        std::string temp;
+        temp.append("1");
+        $$.code = strdup("");
+        $$.place = strdup(temp.c_str());
+    }
+    | FALSE 
+    {
+        std::string temp;
+        temp.append("0");
+        $$.code = strdup("");
+        $$.place = strdup(temp.c_str());
+    }
+    | L_PAREN boolexpressions R_PAREN
+    {
+        $$.code = strdup($2.code);
+        $$.place = strdup($2.place);
+    }
     ;
-comps: EQ {printf("comps -> EQ\n");}
-    | NEQ {printf("comps -> LT GT\n");}
-    | LT {printf("comps -> LT\n");}
-    | GT {printf("comps -> GT\n");}
-    | LTE {printf("comps -> LTE\n");}
-    | GTE {printf("comps -> GTE\n");}
+comps: EQ
+    {
+        $$.code = strdup("");
+        $$.place = strdup("== ");
+    }
+    | NEQ
+    {
+        $$.code = strdup("");
+        $$.place = strdup("!= ");
+    }
+    | LT
+    {
+        $$.code = strdup("");
+        $$.place = strdup("< ");
+    }
+    | GT
+    {
+        $$.code = strdup("");
+        $$.place = strdup("> ");
+    }
+    | LTE
+    {
+        $$.code = strdup("");
+        $$.place = strdup("<= ");
+    }
+    | GTE
+    {
+        $$.code = strdup("");
+        $$.place = strdup(">= ");
+    }
     ;
-expressions: expression {printf("expressions -> expression\n");}
-    |   expression COMMA expressions {printf("expressions -> expression COMMA expressions\n");}
+expressions: expression 
+    |   expression COMMA expressions 
     ;
-expression: multiplicative_expression {printf("expression -> multiplicative_expression\n");}
-    |   multiplicative_expression ADD expression {printf("expression -> multiplicative_expression ADD multiplicative_expression\n");} 
-    |   multiplicative_expression SUB expression {printf("expression -> multiplicative_expression ADD multiplicative_expression\n");}
+expression: multiplicative_expression
+    {
+        std::string temp;
+        temp.append($1.code);
+        $$.code = strdup(temp.c_str());
+    }
+    |   multiplicative_expression ADD expression 
+    {
+        std::string temp;
+        std::string dest = new_temp();
+        temp.append($1.code);
+        temp.append($3.code);
+        temp += ". " + dst + "\n";
+        temp += "+ " + dst + ", ";
+        temp.append($1.place);
+        temp += ", ";
+        temp.append($3.place);
+        temp += "\n";
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup(dst.c_str());
+    }
+    |   multiplicative_expression SUB expression
+    {
+        std::string temp;
+        std::string dest = new_temp();
+        temp.append($1.code);
+        temp.append($3.code);
+        temp += ". " + dst + "\n";
+        temp += "- " + dst + ", ";
+        temp.append($1.place);
+        temp += ", ";
+        temp.append($3.place);
+        temp += "\n";
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup(dst.c_str());
+    }
     ;
-multiplicative_expression: term {printf("multiplicative_expression -> term\n");}
-    | term MULT multiplicative_expression {printf("multiplicative_expression -> term MULT multiplicative_expression\n");}
-    | term DIV multiplicative_expression {printf("multiplicative_expression -> term DIV multiplicative_expression\n");}
-    | term MOD multiplicative_expression {printf("multiplicative_expression -> term MOD multiplicative_expression\n");}
+multiplicative_expression: term 
+    | term MULT multiplicative_expression 
+    | term DIV multiplicative_expression 
+    | term MOD multiplicative_expression 
     ;
-term: var {printf("term -> var\n");}
-    | SUB var {printf("term -> SUB var\n");}
-    | NUMBER {printf("term -> NUMBER\n");}
-    | SUB NUMBER {printf("term -> SUB NUMBER\n");}
-    | L_PAREN expression R_PAREN {printf("term -> L_PAREN expression R_PAREN\n");}
-    | SUB L_PAREN expression R_PAREN {printf("term -> SUB L_PAREN expression R_PAREN\n");}
-    | IDENT L_PAREN expressions R_PAREN {printf("term -> IDENT L_PAREN expressions R_PAREN\n");}
+term: var 
+    | SUB var 
+    | NUMBER 
+    | SUB NUMBER 
+    | L_PAREN expression R_PAREN 
+    | SUB L_PAREN expression R_PAREN 
+    | IDENT L_PAREN expressions R_PAREN 
     ;
-vars: var {printf("vars -> var");}
-    | var COMMA vars {printf("vars -> var COMMA vars");}
+vars: var 
+    | var COMMA vars 
     ;
-var: identifier {printf("var -> identifier\n");}
-    | identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET {printf("var -> identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET\n");}
+var: identifier
+    {
+        std::string temp;
+        $$.code = strdup("");
+        std::string ident = $1.place;
+        if ( funcs.find(ident) == funcs.end() && varTemp.find(ident) == varTemp.end())
+        {
+            printf("Identifier %s is not declared.\n", ident.c_str());
+        }
+        else if (arrSize[ident] > 1)
+        {
+            printf("No index provided for array identifier %s.\n", ident.c_str());
+        }
+        $$.place = strdup(ident.c_str());
+        $$.arr = false;
+    }
+    | identifier L_SQUARE_BRACKET expressions R_SQUARE_BRACKET
+    {
+        std::string temp;
+        std::string ident = $1.place;
+        if ( funcs.find(ident) == funcs.end() && varTemp.find(ident) == varTemp.end())
+        {
+            printf("Identifier %s is not declared.\n", ident.c_str());
+        }
+        else if (arrSize[ident] == 1)
+        {
+            printf(Provided index for non-array identifier %s.\n", ident.c_str());
+        }
+        temp.append($1.place);
+        temp.append(", ");
+        temp.append($3.place);
+        $$.code = strdup($3.code);
+        $$.place = strdup(temp.c_str());
+        $$.arr = true;
+    }
     ;
 
 FuncIdent: IDENT
