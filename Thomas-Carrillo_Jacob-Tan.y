@@ -253,7 +253,7 @@ statement:
         std::string dst = new_temp();
 
         temp.append($2.code);
-        temp.append("ret ");
+        temp.append("ret ");git 
         temp.append($2.place);
         temp.append("\n");
         $$.code = strdup(temp.c_str());
@@ -404,17 +404,24 @@ term: var
     {
         std::string temp;
         std::string dst = new_temp();
-
-        temp.append($1.code);
+        temp.append(". ");
+        temp.append(dst);
+        temp.append("\n");
+        temp = temp + "= " + dst + ", " std::to_string($1) + "\n";
         $$.code = strdup(temp.c_str());
-        $$.place = stdup(temp.c_str());
+        $$.place = stdup(dst.c_str());
     }
     | SUB NUMBER 
     {
         //- dst, src1, src 2
-        std::string temp = "- ";
+        std::string temp;
         std::string dst = new_temp();
-
+        temp.append(". ");
+        temp.append(dst);
+        temp.append("\n");
+        temp = temp + "= " + dst + ", -" + std::to_string($2) + "\n";
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup(dst.c_str());
     }
     | L_PAREN expression R_PAREN 
     | SUB L_PAREN expression R_PAREN 
