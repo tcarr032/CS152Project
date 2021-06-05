@@ -8,7 +8,7 @@
  int tempCount = 0;
  std::map<std::string, std::string> varTemp;
  std::map<std::string, int> arrSize;
- bool mainFunc = false;
+ bool mainFunc;
  std::set<std::string> funcs;
  std::set<std::string> reserved {"NUMBER", "IDENT", "RETURN", "FUNCTION", "SEMICOLON", "BEGIN_PARAMS", "END_PARAMS", "BEGIN_LOCALS", "END_LOCALS", "BEGIN_BODY", 
     "END_BODY", "BEGINLOOP", "ENDLOOP", "COLON", "INTEGER", "COMMA", "ARRAY", "L_SQUARE_BRACKET", "R_SQUARE_BRACKET", "L_PAREN", "R_PAREN", "IF", "ELSE", "THEN", 
@@ -449,7 +449,7 @@ expressions: expression
         std::string dst = new_temp;
         temp.append($1.code);
         temp.append($3.code);
-        temp = temp + ". " + dst + "\n" 
+        temp = temp + ". " + dst + "\n";
     }
     ;
 expression: multiplicative_expression
@@ -594,7 +594,7 @@ term: var {
         temp.append(". ");
         temp.append(dst);
         temp.append("\n");
-        temp = temp + "= " + dst ", -" + std:to_string($2) + "\n";
+        temp = temp + "= " + dst + ", -" + std:to_string($2) + "\n";
         $$.code = strdup(temp.c_str());
         $$.place = strdup(dst.c_str());
     }
@@ -726,7 +726,7 @@ std::string new_temp(){
     return t;
 }
 
-std:: new_label(){
+std::string new_label(){
     std::string l = "L" + std::to_string(labelCount);
     labelCount++;
     return l;
