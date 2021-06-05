@@ -33,7 +33,7 @@
 }
 
 %error-verbose
-%start PROGRAM
+%start Program
 %token FOR FUNCTION BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY INTEGER ARRAY ENUM OF IF THEN ENDIF ELSE WHILE DO BEGINLOOP ENDLOOP CONTINUE READ WRITE TRUE FALSE RETURN 
 %token MULT ADD DIV SUB MOD
 %token SEMICOLON COLON COMMA L_PAREN R_PAREN L_SQUARE_BRACKET R_SQUARE_BRACKET  
@@ -46,6 +46,8 @@
 %left MULT DIV MOD
 %right ASSIGN
 
+
+
 %%
 Program: %empty
     {
@@ -53,7 +55,7 @@ Program: %empty
             printf ("No main function declared!\m");
         }
     }
-    | Function Program
+    | function Program
     {}
     ;
 function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY 
@@ -165,8 +167,23 @@ declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF
         $$.code = strdup(temp.c_str());
         $$.place = strdup("");
     }
-    | identifiers COLON INTEGER 
-    | identifiers COLON ENUM L_PAREN identifiers R_PAREN 
+    | identifiers COLON INTEGER
+    {
+        std::string temp;
+        temp.append($1.code);
+        temp.append($3.code);
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup("");
+
+    }
+    | identifiers COLON ENUM L_PAREN identifiers R_PAREN
+    {
+        std::string temp;
+        temp.append($1.code);
+        temp.append($5.code);
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup("");
+    }
     ;
 statements: 
     | statement SEMICOLON statements
@@ -222,9 +239,9 @@ statement:
         std::string after = new_label();
         std::string temp;
         temp.append($2.code);
-        temp = temp + "?:-= " + ifs + ", " + $2.place + "\n";
+        temp = temp + "?:-= " + ifS + ", " + $2.place + "\n";
         temp = temp + ":= " + after + "\n";
-        temp = temp + ": " + ifs + "\n";
+        temp = temp + ": " + ifS + "\n";
         temp.append($4.append);
         temp = temp + ": " + after + "\n";
         temp.append($6.code);
@@ -232,9 +249,31 @@ statement:
     }
     | WHILE boolexpressions BEGINLOOP statements ENDLOOP 
     {
-        
+        std::string ifS = new_label();
+        std::string after = new_label();
+        std::string temp;
+        temp.append($2.code);
+        temp = temp + "?:= " + ifS + ", " + $2.place + "\n";
+        temp = temp + ":= " + after + "\n";
+        temp = temp + ": " + ifS + "\n";
+        temp.append($4.code);
+        temp = temp + ": " + after + "\n";
+        $$.code = strdup(temp.c_str());
+
     }
-    | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions 
+    | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions
+    {
+        std::string ifS = new_label();
+        std::string after = new_label();
+        std::string temp;
+        temp.append($6.code);
+        temp = temp + "?:= " + ifS + ", " + $6.place + "\n";
+        temp = temp + ":= " + after + "\n";
+        temp = temp + ": " + ifS + "\n";
+        temp.append($3.code);
+        temp = temp + ": " + after + "\n";
+        $$.code = strdup(temp.c_str());
+    }
     | READ vars 
     {
         std::string temp;
@@ -277,7 +316,7 @@ statement:
 boolexpressions: relationandexpressions
     {
         $$.code = strdup($1.code);
-        $$.place = strdup($.place);
+        $$.place = strdup($1.place);
     }
     | relationandexpressions OR relationandexpressions
     {
@@ -298,7 +337,7 @@ boolexpressions: relationandexpressions
 relationandexpressions: relationexpressions
     {
         $$.code = strdup($1.code);
-        $$.place = strdup($.place);
+        $$.place = strdup($1.place);
     }
     | relationexpressions AND relationandexpressions
     {
