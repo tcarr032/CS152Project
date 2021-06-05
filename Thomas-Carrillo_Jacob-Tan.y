@@ -2,6 +2,8 @@
  #include <stdio.h>
  #include <stdlib.h>
  void yyerror(const char *msg);
+ std::string new_label();
+ std::string new_temp();
  extern int currLine;
  extern int currPos;
  int labelCount = 0;
@@ -686,7 +688,7 @@ std::string new_temp(){
     return t;
 }
 
-std:: new_label(){
+std::string new_label(){
     std::string l = "L" + std::to_string(labelCount);
     labelCount++;
     return l;
