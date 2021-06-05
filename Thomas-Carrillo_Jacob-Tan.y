@@ -57,6 +57,7 @@ Program: %empty
     {}
     ;
 function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY 
+    {
     std::string temp = "func ";
     temp.append($2.place);
     temp.append("\n");
@@ -82,10 +83,9 @@ function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS B
         printf("ERROR: Loop continued outside function. %s\n", $2.place);
     }
     temp.append(statements);
-    temp.append("endfunc\n\n);
+    temp.append("endfunc\n\n");
     printf(temp.c_str());
-    ;
-
+    };
 
 
 declarations: %empty
@@ -211,14 +211,29 @@ statement:
         std::string temp;
         temp.append($2.code);
         temp = temp + "?:= " + ifS + ", " + $2.place + "\n";
-        temp - temp + ":= " + after + "\n";
+        temp = temp + ":= " + after + "\n";
         temp = temp + ": " + ifS + "\n";
         temp.append($4.code);
         temp = temp + ": " + after + "\n";
-        $$.code = strdup("temp.c_str());
+        $$.code = strdup(temp.c_str());
     }
-    | IF boolexpressions THEN statements ELSE statements ENDIF 
+    | IF boolexpressions THEN statements ELSE statements ENDIF {
+        std::string ifS = new_label();
+        std::string after = new_label();
+        std::string temp;
+        temp.append($2.code);
+        temp = temp + "?:-= " + ifs + ", " + $2.place + "\n";
+        temp = temp + ":= " + after + "\n";
+        temp = temp + ": " + ifs + "\n";
+        temp.append($4.append);
+        temp = temp + ": " + after + "\n";
+        temp.append($6.code);
+        $$.code = strdup(temp.c_str());
+    }
     | WHILE boolexpressions BEGINLOOP statements ENDLOOP 
+    {
+        
+    }
     | DO BEGINLOOP statements ENDLOOP WHILE boolexpressions 
     | READ vars 
     {
@@ -316,7 +331,7 @@ relationexpressions: NOT relationexpress
     |   relationexpress
     {
         $$.code = strdup($1.code);
-        $$.place = strdup($.place);
+        $$.place = strdup($1.place);
     }
     ;
 relationexpress: expressions comps expressions 
@@ -381,7 +396,21 @@ comps: EQ
     }
     ;
 expressions: expression 
+    {
+        std::string temp;
+        std::string dst = new_temp();
+        temp.append($1.code);
+        temp +=
+        $$.code = strdup(temp.c_str);
+    }
     |   expression COMMA expressions 
+    {
+        std::string temp;
+        std::string dst = new_temp;
+        temp.append($1.code);
+        temp.append($3.code);
+        temp = temp + ". " + dst + "\n" 
+    }
     ;
 expression: multiplicative_expression
     {
@@ -422,8 +451,9 @@ expression: multiplicative_expression
     ;
 multiplicative_expression: term
     {
+      
         $$.code = strdup($1.code);
-        $$.place = strdup($.place);
+        $$.place = strdup($1.place);
     }
     | term MULT multiplicative_expression
     {
@@ -439,8 +469,8 @@ multiplicative_expression: term
         temp += ", ";
         temp.append($3.place);
         temp += "\n";
-        $$.code = strdup($1.code);
-        $$.place = strdup($.place);
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup(dst.c_str());
     }
     | term DIV multiplicative_expression
     {
@@ -456,8 +486,8 @@ multiplicative_expression: term
         temp += ", ";
         temp.append($3.place);
         temp += "\n";
-        $$.code = strdup($1.code);
-        $$.place = strdup($.place);
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup(dst.c_str());
     }
     | term MOD multiplicative_expression
     {
@@ -473,11 +503,14 @@ multiplicative_expression: term
         temp += ", ";
         temp.append($3.place);
         temp += "\n";
-        $$.code = strdup($1.code);
-        $$.place = strdup($.place);
+        $$.code = strdup(temp.c_str());
+        $$.place = strdup(dst.c_str());
     }
     ;
-term: var 
+term: var {
+        $$.code = strdup($1.code);
+        $$.place = strdup($1.place);
+    }
     | SUB var {
         std::string dst = new_temp();
         std::string temp;
@@ -553,8 +586,10 @@ vars: var
     | var COMMA vars 
     {
         std::string temp;
+        std::string dst = new_temp;
         temp.append($1.code);
-
+        temp.append($3.code);
+        temp = temp + ". " + dst + "\n" 
     }
     ;
 var: identifier
@@ -583,7 +618,7 @@ var: identifier
         }
         else if (arrSize[ident] == 1)
         {
-            printf(Provided index for non-array identifier %s.\n", ident.c_str());
+            printf("Provided index for non-array identifier %s.\n", ident.c_str());
         }
         temp.append($1.place);
         temp.append(", ");
@@ -597,7 +632,7 @@ var: identifier
 FuncIdent: IDENT
     {
         if (funcs.find($1) != funcs.end()) {
-            printf("function name %s is already declared.\n), $1);
+            printf("function name %s is already declared.\n"), $1);
         }
         else
         {
