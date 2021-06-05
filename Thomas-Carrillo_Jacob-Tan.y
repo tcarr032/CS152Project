@@ -1,6 +1,6 @@
 %{
- #define YY_NO_UNPUT
  #include <stdio.h>
+ #include <stdbool.h>
  #include <stdlib.h>
  #include <map>
  #include <string.h>
@@ -13,7 +13,7 @@
  int tempCount = 0;
  std::map<std::string, std::string> varTemp;
  std::map<std::string, int> arrSize;
- bool mainFunc = false;
+ bool mainFunc;
  std::set<std::string> funcs;
  std::set<std::string> reserved {"NUMBER", "IDENT", "RETURN", "FUNCTION", "SEMICOLON", "BEGIN_PARAMS", "END_PARAMS", "BEGIN_LOCALS", "END_LOCALS", "BEGIN_BODY", 
     "END_BODY", "BEGINLOOP", "ENDLOOP", "COLON", "INTEGER", "COMMA", "ARRAY", "L_SQUARE_BRACKET", "R_SQUARE_BRACKET", "L_PAREN", "R_PAREN", "IF", "ELSE", "THEN", 
@@ -32,12 +32,12 @@
 	char* id_val;
     struct S {
         char* code;
-    } Statement;
+    } statement;
     struct E {
         char* place;
         char* code;
         bool arr;
-    } Expression;
+    } expression;
 }
 
 %error-verbose
@@ -48,9 +48,6 @@
 
 %token <num_val> NUMBER
 %token <id_val> IDENT
-%type <Expression> function FuncIdent declarations declaration vars var expressions expression identifiers identifier
-%type <Expression> boolexpressions relationexpress comps multiplicative_expression term relationandexpressions
-%type <Statement> statements statement
 
 %left ADD SUB
 %left AND OR
@@ -59,7 +56,9 @@
 %left MULT DIV MOD
 %right ASSIGN
 
-
+%type <expression> function FuncIdent declarations declaration vars var expressions expression identifiers identifier
+%type <expression> boolexpressions relationandexpressions relationexpress relationexpressions comps multiplicative_expression term
+%type <statement> statements statement
 
 %%
 Program: %empty
@@ -69,9 +68,7 @@ Program: %empty
         }
     }
     | function Program
-    {
-
-    }
+    {}
     ;
 function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY 
     {
@@ -113,7 +110,6 @@ declarations: %empty
     | declaration SEMICOLON declarations 
     {
         std::string temp;
-        temp.append($1.code);
         temp.append($3.code);
         $$.code = strdup(temp.c_str());
         $$.place = strdup("");
@@ -186,6 +182,7 @@ declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF
     {
         std::string temp;
         temp.append($1.code);
+        //temp.append($3.place);
         $$.code = strdup(temp.c_str());
         $$.place = strdup("");
 
@@ -393,7 +390,7 @@ relationexpress: expressions comps expressions
         std::string temp;
         temp.append($1.code);
         temp.append($3.code);
-        temp = temp + ". " + dst + "\n" + $2.place + dst + ", " + $3.place + "\n";
+        temp = temp + ". " + dst + "\n" + $2.place + dst + ", " + $1.place + ", " + $3.place +"\n";
         $$.code = strdup(temp.c_str());
         $$.place = strdup(dst.c_str());
     }
@@ -462,7 +459,7 @@ expressions: expression
         std::string dst = new_temp;
         temp.append($1.code);
         temp.append($3.code);
-        temp = temp + ". " + dst + "\n" 
+        temp = temp + ". " + dst + "\n";
     }
     ;
 expression: multiplicative_expression
@@ -607,7 +604,7 @@ term: var {
         temp.append(". ");
         temp.append(dst);
         temp.append("\n");
-        temp = temp + "= " + dst ", -" + std:to_string($2) + "\n";
+        temp = temp + "= " + dst + ", -" + std:to_string($2) + "\n";
         $$.code = strdup(temp.c_str());
         $$.place = strdup(dst.c_str());
     }
