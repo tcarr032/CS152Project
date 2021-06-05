@@ -1,9 +1,12 @@
 %{
+ #define YY_NO_UNPUT
  #include <stdio.h>
  #include <stdlib.h>
+ #include <map>
+ #include <string.h>
+ #include <set>
+
  void yyerror(const char *msg);
- std::string new_label();
- std::string new_temp();
  extern int currLine;
  extern int currPos;
  int labelCount = 0;
@@ -19,19 +22,22 @@
     "Relation-And-Expr", "Relation-Expr-Inv", "Relation-Expr", "Comp", "Multiplicative-Expr", "Term", "Statements", "Statement"};
 
  FILE* yyin;
+ std::string new_temp();
+ std::string new_label();
+ int yylex();
 %}
-
+ 
 %union{
 	int num_val;
 	char* id_val;
     struct S {
         char* code;
-    } statement;
+    } Statement;
     struct E {
         char* place;
         char* code;
         bool arr;
-    } expression;
+    } Expression;
 }
 
 %error-verbose
@@ -39,8 +45,13 @@
 %token FOR FUNCTION BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY INTEGER ARRAY ENUM OF IF THEN ENDIF ELSE WHILE DO BEGINLOOP ENDLOOP CONTINUE READ WRITE TRUE FALSE RETURN 
 %token MULT ADD DIV SUB MOD
 %token SEMICOLON COLON COMMA L_PAREN R_PAREN L_SQUARE_BRACKET R_SQUARE_BRACKET  
+
 %token <num_val> NUMBER
 %token <id_val> IDENT
+%type <Expression> function FuncIdent declarations declaration vars var expressions expression identifiers identifier
+%type <Expression> boolexpressions relationexpress comps multiplicative_expression term relationandexpressions
+%type <Statement> statements statement
+
 %left ADD SUB
 %left AND OR
 %left EQ NEQ LT GT LTE GTE
@@ -58,7 +69,9 @@ Program: %empty
         }
     }
     | function Program
-    {}
+    {
+
+    }
     ;
 function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY 
     {
@@ -173,7 +186,6 @@ declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF
     {
         std::string temp;
         temp.append($1.code);
-        temp.append($3.code);
         $$.code = strdup(temp.c_str());
         $$.place = strdup("");
 
