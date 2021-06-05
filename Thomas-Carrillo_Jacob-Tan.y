@@ -46,7 +46,9 @@
 %left MULT DIV MOD
 %right ASSIGN
 
-
+%type <expression> function FuncIdent declarations declaration vars var expressions expression identifiers identifier
+%type <expression> boolexpressions relationandexpressions relationexpress relationexpressions comp comps multiplicative_expression term
+%type <statement> statements statement
 
 %%
 Program: %empty
@@ -98,7 +100,6 @@ declarations: %empty
     | declaration SEMICOLON declarations 
     {
         std::string temp;
-        temp.append($1.code);
         temp.append($3.code);
         $$.code = strdup(temp.c_str());
         $$.place = strdup("");
@@ -171,7 +172,7 @@ declaration: identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF
     {
         std::string temp;
         temp.append($1.code);
-        temp.append($3.code);
+        //temp.append($3.place);
         $$.code = strdup(temp.c_str());
         $$.place = strdup("");
 
@@ -379,7 +380,7 @@ relationexpress: expressions comps expressions
         std::string temp;
         temp.append($1.code);
         temp.append($3.code);
-        temp = temp + ". " + dst + "\n" + $2.place + dst + ", " + $3.place + "\n";
+        temp = temp + ". " + dst + "\n" + $2.place + dst + ", " + $1.place + ", " + $3.place +"\n";
         $$.code = strdup(temp.c_str());
         $$.place = strdup(dst.c_str());
     }
